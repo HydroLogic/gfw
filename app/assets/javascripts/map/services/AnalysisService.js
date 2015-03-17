@@ -26,9 +26,9 @@ define([
 
   'use strict';
 
-  var URL = 'http://beta.gfw-apis.appspot.com/forest-change';
+  var URL = 'http://staging.gfw-apis.appspot.com/forest-change';
   //var URL = 'http://localhost:8080/forest-change';
-  
+
 
   var AnalysisService = Class.extend({
 

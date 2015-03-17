@@ -196,7 +196,7 @@ gfw.ui.view.CountriesOverview = cdb.core.View.extend({
               }
           var max_trigger = data.length -1;
           $.ajax({
-            url: 'http://beta.gfw-apis.appspot.com/forest-change/umd-loss-gain/admin/' + val.iso+'?thresh=' + (config.canopy_choice || 30),
+            url: 'http://staging.gfw-apis.appspot.com/forest-change/umd-loss-gain/admin/' + val.iso+'?thresh=' + (config.canopy_choice || 30),
             dataType: 'json',
             success: function(data) {
               var loss = (config.canopy_choice == false || config.canopy_choice == 30) ? Math.round(val.loss) : 0;
