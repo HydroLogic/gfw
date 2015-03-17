@@ -96,7 +96,7 @@ define([
                 tileurl, \
                 true AS visible \
               FROM \
-                layerspec \
+                layerspec_umd_2014 \
               WHERE \
                 display = \'true\' \
               ORDER BY \
