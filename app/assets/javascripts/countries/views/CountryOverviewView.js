@@ -308,6 +308,7 @@ define([
           }
         }, this ));
       } else if (this.model.get('graph') === 'percent_loss') {
+        //gain
         $('.countries_list__header__minioverview').hide();
         var mode = JSON.parse(sessionStorage.getItem('OVERVIEWMODE'));
 
@@ -396,8 +397,13 @@ define([
 
         });
       } else if (this.model.get('graph') === 'total_extent') {
+        //cover
         $('.countries_list__header__minioverview').hide();
+        var mode = JSON.parse(sessionStorage.getItem('OVERVIEWMODE'));
+
         var sql = 'SELECT umd.iso, country as name, extent_2000 as extent, c.enabled FROM umd_nat_final_1 umd, gfw2_countries c WHERE thresh = ' + (this.helper.config.canopy_choice || 30) +' AND umd.iso = c.iso GROUP BY umd.iso, umd.country, extent_2000 , name, c.enabled ORDER BY extent_2000 desc ';
+        if (!!mode && mode.mode == 'percent')
+          sql = 'SELECT umd.iso, country as name, extent_perc as extent, c.enabled FROM umd_nat_final_1 umd, gfw2_countries c WHERE thresh = ' + (this.helper.config.canopy_choice || 30) +' AND extent_perc > 0 AND umd.iso = c.iso GROUP BY umd.iso, umd.country, extent_perc , name, c.enabled ORDER BY extent_perc desc ';
         if (e) {
           sql += 'OFFSET 10';
         } else {
@@ -449,54 +455,54 @@ define([
 
           that.model.set('class', 'expanded');
         });
-      } else if (this.model.get('graph') === 'ratio') {
-        $('.countries_list__header__minioverview').hide();
-        var sql = 'WITH loss as (SELECT iso, sum(loss) sum_loss FROM umd_nat WHERE thresh = ' + (this.helper.config.canopy_choice || 30) + ' GROUP BY iso),gain as (SELECT iso, sum(gain) sum_gain FROM umd_nat WHERE thresh = ' + (this.helper.config.canopy_choice || 30) + ' GROUP BY iso), ratio as (SELECT c.iso, c.name, c.enabled, loss.sum_loss/gain.sum_gain as ratio FROM loss, gain, gfw2_countries c WHERE sum_gain IS NOT null AND NOT sum_gain = 0 AND c.iso = gain.iso  AND c.iso = loss.iso ORDER BY loss.sum_loss DESC LIMIT 50) SELECT * FROM ratio WHERE ratio IS NOT null ORDER BY ratio DESC ';
+      // } else if (this.model.get('graph') === 'ratio') {
+      //   $('.countries_list__header__minioverview').hide();
+      //   var sql = 'WITH loss as (SELECT iso, sum(loss) sum_loss FROM umd_nat WHERE thresh = ' + (this.helper.config.canopy_choice || 30) + ' GROUP BY iso),gain as (SELECT iso, sum(gain) sum_gain FROM umd_nat WHERE thresh = ' + (this.helper.config.canopy_choice || 30) + ' GROUP BY iso), ratio as (SELECT c.iso, c.name, c.enabled, loss.sum_loss/gain.sum_gain as ratio FROM loss, gain, gfw2_countries c WHERE sum_gain IS NOT null AND NOT sum_gain = 0 AND c.iso = gain.iso  AND c.iso = loss.iso ORDER BY loss.sum_loss DESC LIMIT 50) SELECT * FROM ratio WHERE ratio IS NOT null ORDER BY ratio DESC ';
 
-        if (e) {
-          sql += ['OFFSET 10',
-                  'LIMIT 40'].join('\n');
-        } else {
-          sql += 'LIMIT 10';
-        }
+      //   if (e) {
+      //     sql += ['OFFSET 10',
+      //             'LIMIT 40'].join('\n');
+      //   } else {
+      //     sql += 'LIMIT 10';
+      //   }
 
-        d3.json('http://wri-01.cartodb.com/api/v2/sql/?q='+encodeURIComponent(sql), _.bind(function(json) {
-          var self = that,
-              markup_list = '';
+      //   d3.json('http://wri-01.cartodb.com/api/v2/sql/?q='+encodeURIComponent(sql), _.bind(function(json) {
+      //     var self = that,
+      //         markup_list = '';
 
-          var data = json.rows;
-          var max_trigger = data.length -1;
-          _.each(data, _.bind(function(val, key) {
-            var ord = e ? (key+11) : (key+1),
-                enabled = val.enabled ? '<a href="/country/'+val.iso+'">'+val.name+'</a>' : val.name;
+      //     var data = json.rows;
+      //     var max_trigger = data.length -1;
+      //     _.each(data, _.bind(function(val, key) {
+      //       var ord = e ? (key+11) : (key+1),
+      //           enabled = val.enabled ? '<a href="/country/'+val.iso+'">'+val.name+'</a>' : val.name;
 
-            markup_list += '<li>\
-                              <div class="countries_list__minioverview_number countries_list__minioverview medium countries_list__minioverview_'+val.iso+'" class="loss">'+this.helper.formatNumber(parseFloat(val.ratio).toFixed(2))+'</div>\
-                              <div class="countries_list__num">'+ord+'</div>\
-                              <div class="countries_list__title">'+enabled+'</div>\
-                            </li>';
-            if (key == max_trigger){
-              that._reorderRanking();
-            }
-          }, this ));
+      //       markup_list += '<li>\
+      //                         <div class="countries_list__minioverview_number countries_list__minioverview medium countries_list__minioverview_'+val.iso+'" class="loss">'+this.helper.formatNumber(parseFloat(val.ratio).toFixed(2))+'</div>\
+      //                         <div class="countries_list__num">'+ord+'</div>\
+      //                         <div class="countries_list__title">'+enabled+'</div>\
+      //                       </li>';
+      //       if (key == max_trigger){
+      //         that._reorderRanking();
+      //       }
+      //     }, this ));
 
-          if (e) {
-            $('.show-more-countries').fadeOut();
-          } else {
-            $('.countries_list ul').html('');
-            $('.show-more-countries').show();
+      //     if (e) {
+      //       $('.show-more-countries').fadeOut();
+      //     } else {
+      //       $('.countries_list ul').html('');
+      //       $('.show-more-countries').show();
 
-            $('.countries_list__header__minioverview').removeClass('loss-vs-gain per-loss total-loss cover-extent ratio-loss-gain').addClass('ratio-loss-gain').html('Ratio of Loss to Gain');
-          }
+      //       $('.countries_list__header__minioverview').removeClass('loss-vs-gain per-loss total-loss cover-extent ratio-loss-gain').addClass('ratio-loss-gain').html('Ratio of Loss to Gain');
+      //     }
 
-          $('.countries_list ul').append(markup_list);
+      //     $('.countries_list ul').append(markup_list);
 
-          that.model.set('class', 'medium');
+      //     that.model.set('class', 'medium');
 
-          _.each(data, function(val, key) {
-            self._drawMiniOverview(val.iso);
-          });
-        }, this ));
+      //     _.each(data, function(val, key) {
+      //       self._drawMiniOverview(val.iso);
+      //     });
+      //   }, this ));
       } else if (this.model.get('graph') === 'domains') {
         $('.countries_list__header__minioverview').show();
         var sql = 'SELECT ecozone as name, sum(loss) as total_loss, sum(gain) as total_gain FROM umd_eco where thresh = ' + (this.helper.config.canopy_choice || 30) +' group by ecozone';
